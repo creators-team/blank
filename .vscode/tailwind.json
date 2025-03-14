@@ -1,0 +1,55 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@import",
+      "description": "In Tailwind CSS v4, use '@import \"tailwindcss\";' to include Tailwind's base, components, and utilities styles instead of '@tailwind base;', '@tailwind components;', and '@tailwind utilities;'.",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url": "https://tailwindcss.com/docs/upgrade-guide"
+        }
+      ]
+    },
+    {
+      "name": "@utility",
+      "description": "Introduced in Tailwind CSS v4, '@utility' is used to define custom utilities, utilizing native CSS cascade layers for better specificity and maintainability.",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url": "https://tailwindcss.com/docs/upgrade-guide#adding-custom-utilities"
+        }
+      ]
+    },
+    {
+      "name": "@config",
+      "description": "Explicitly loads a JavaScript configuration file into your CSS in Tailwind CSS v4, replacing automatic configuration loading from earlier versions.",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url": "https://tailwindcss.com/docs/upgrade-guide#theme-values-in-javascript"
+        }
+      ]
+    },
+    {
+      "name": "@custom-variant",
+      "description": "The '@custom-variant' directive allows the creation of custom state variants (e.g., hover, active) in Tailwind CSS v4.",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url": "https://tailwindcss.com/docs/upgrade-guide#variants"
+        }
+      ]
+    },
+    {
+      "name": "@theme",
+      "description": "Use the '@theme' directive in Tailwind CSS v4 to access CSS variables for theme values directly within your CSS, replacing the older 'theme()' function.",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url": "https://tailwindcss.com/docs/upgrade-guide#theme-values-in-javascript"
+        }
+      ]
+    }
+  ]
+}
