@@ -1,0 +1,14 @@
+{
+  "$schema": "https://ui.useblank.com/schema/registry.json",
+  "homepage": "https://ui.useblank.com/utils",
+  "name": "utils",
+  "type": "registry:ui",
+  "author": "BlankUI <hello@blankui.com>",
+  "registryDependencies": [],
+  "dependencies": [
+    "clsx",
+    "tailwind-merge"
+  ],
+  "devDependencies": [],
+  "files": []
+}

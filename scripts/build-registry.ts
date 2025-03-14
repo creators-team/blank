@@ -1,96 +1,115 @@
-import { promises as fs, readdirSync } from 'node:fs';
-import path, { join } from 'node:path';
+import { existsSync, promises as fsPromises } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 
-const cwd = process.cwd();
-const packagesPath = join(cwd, 'packages');
-const packagesDir = readdirSync(packagesPath, { withFileTypes: true });
-const internalPackages = ['tailwind-config', 'typescript-config'];
+// Configuration constants
+const REGISTRY_OUTPUT_DIR = 'apps/docs/public/registry';
+const EXCLUDED_INTERNAL = ['tailwind-config', 'typescript-config'];
+const IGNORED_DEPENDENCIES = ['react', 'react-dom'];
+const IGNORED_DEV_DEPENDENCIES = [
+  '@blankui/typescript-config',
+  '@types/react',
+  '@types/react-dom',
+  'typescript',
+];
 
-const packages = packagesDir
-  .filter((dir) => dir.isDirectory() && !internalPackages.includes(dir.name))
-  .map((dir) => dir.name);
-
-const PUBLIC_FOLDER_BASE_PATH = 'apps/docs/public/registry';
-
-const writeFileRecursive = async (filePath: string, data: string) => {
-  const dir = path.dirname(filePath);
-
-  await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(filePath, data, 'utf-8');
-};
-
-const buildRegistry = async (pkg: string) => {
-  const cwd = process.cwd();
-
-  const packagePath = join(cwd, 'packages', pkg, 'package.json');
-  const packageJson = await import(packagePath);
-
-  const dependencies = Object.keys(packageJson.dependencies).filter(
-    (dep) => !['react', 'react-dom'].includes(dep)
-  );
-
-  const devDependencies = Object.keys(packageJson.devDependencies).filter(
-    (dep) =>
-      ![
-        '@blankui/typescript-config',
-        '@types/react',
-        '@types/react-dom',
-        'typescript',
-      ].includes(dep)
-  );
-
-  const packageDir = join(cwd, 'packages', pkg);
-  const files = readdirSync(packageDir, { withFileTypes: true })
-    .filter((file) => file.isFile() && file.name.endsWith('.tsx'))
-    .map(async (file) => {
-      const filePath = join(packageDir, file.name);
-      const content = await fs.readFile(filePath, 'utf-8');
-      return {
-        type: 'registry:ui',
-        path: file.name,
-        content,
-        target: `components/ui/blank-ui/${pkg}/${file.name}`,
-      };
-    });
-
-  const allFiles = await Promise.all(files);
-  const allContent = allFiles.map((f) => f.content).join('\n');
-
-  const registryDependencies = (
-    allContent.match(/@\/components\/ui\/([a-z-]+)/g) || []
-  )
-    .map((path) => path.split('/').pop())
-    .filter((name): name is string => !!name);
-
-  const json = JSON.stringify(
-    {
-      $schema: 'https://ui.useblank.com/schema/registry.json',
-      homepage: `https://ui.useblank.com/${pkg}`,
-      name: pkg,
-      type: 'registry:ui',
-      author: 'BlankUI <hello@blankui.com>',
-      registryDependencies,
-      dependencies,
-      devDependencies,
-      files: allFiles,
-    },
-    null,
-    2
-  );
-  const jsonPath = join(PUBLIC_FOLDER_BASE_PATH, `${pkg}.json`);
-  await writeFileRecursive(jsonPath, json);
-};
-
-const main = async () => {
-  for (const pkg of packages) {
-    await buildRegistry(pkg);
+const ensureDirectoryExists = async (directory: string): Promise<void> => {
+  if (!existsSync(directory)) {
+    await fsPromises.mkdir(directory, { recursive: true });
   }
 };
 
-main()
-  .then(() => {
-    console.log('done');
-  })
-  .catch((err) => {
-    console.error(err);
-  });
+async function saveJsonToFile(targetPath: string, data: unknown): Promise<void> {
+  const directory = dirname(targetPath);
+  await ensureDirectoryExists(directory);
+  await fsPromises.writeFile(
+    targetPath, 
+    JSON.stringify(data, null, 2), 
+    'utf-8'
+  );
+};
+
+const extractDependencies = (content: string): string[] => {
+  const dependencyRegex = /@\/components\/ui\/([a-z-]+)/g;
+  const matches = content.match(dependencyRegex) || [];
+  return matches
+    .map(path => path.split('/').pop())
+    .filter(Boolean) as string[];
+};
+
+const processComponentPackage = async (packageName: string): Promise<void> => {
+  const rootDir = process.cwd();
+  const packageDir = resolve(rootDir, 'packages', packageName);
+  
+  const packageConfig = await import(resolve(packageDir, 'package.json'));
+  
+  const requiredDependencies = Object.keys(packageConfig.dependencies || {})
+    .filter(dep => !IGNORED_DEPENDENCIES.includes(dep));
+    
+  const requiredDevDependencies = Object.keys(packageConfig.devDependencies || {})
+    .filter(dep => !IGNORED_DEV_DEPENDENCIES.includes(dep));
+  
+  const dirEntries = await fsPromises.readdir(packageDir, { withFileTypes: true });
+  
+  const componentFiles = await Promise.all(
+    dirEntries
+      .filter(entry => entry.isFile() && entry.name.endsWith('.tsx'))
+      .map(async entry => {
+        const filePath = resolve(packageDir, entry.name);
+        const fileContent = await fsPromises.readFile(filePath, 'utf-8');
+        
+        return {
+          type: 'registry:ui',
+          path: entry.name,
+          content: fileContent,
+          target: `components/ui/blank-ui/${packageName}/${entry.name}`
+        };
+      })
+  );
+  
+  const allContent = componentFiles.map(file => file.content).join('\n');
+  const componentDependencies = extractDependencies(allContent);
+
+  const registryData = {
+    $schema: 'https://ui.useblank.com/schema/registry.json',
+    homepage: `https://ui.useblank.com/${packageName}`,
+    name: packageName,
+    type: 'registry:ui',
+    author: 'BlankUI <hello@blankui.com>',
+    registryDependencies: componentDependencies,
+    dependencies: requiredDependencies,
+    devDependencies: requiredDevDependencies,
+    files: componentFiles,
+  };
+  
+  // Save registry file
+  const outputPath = resolve(rootDir, REGISTRY_OUTPUT_DIR, `${packageName}.json`);
+  await saveJsonToFile(outputPath, registryData);
+};
+
+const generateComponentRegistry = async (): Promise<void> => {
+  try {
+    const rootDir = process.cwd();
+    const packagesDir = resolve(rootDir, 'packages');
+    
+    const entries = await fsPromises.readdir(packagesDir, { withFileTypes: true });
+    
+    const componentPackages = entries
+      .filter(entry => 
+        entry.isDirectory() && 
+        !EXCLUDED_INTERNAL.includes(entry.name)
+      )
+      .map(entry => entry.name);
+    
+    for (const packageName of componentPackages) {
+      await processComponentPackage(packageName);
+    }
+    
+    console.log('Registry generation completed successfully');
+  } catch (error) {
+    console.error('Failed to generate registry:', error);
+    process.exit(1);
+  }
+};
+
+// Execute the main function
+generateComponentRegistry();
