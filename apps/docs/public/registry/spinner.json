@@ -5,10 +5,7 @@
   "type": "registry:ui",
   "author": "BlankUI <hello@blankui.com>",
   "registryDependencies": [],
-  "dependencies": [
-    "lucide-react",
-    "@blankui/utils"
-  ],
+  "dependencies": ["lucide-react", "@blankui/utils"],
   "devDependencies": [],
   "files": [
     {
