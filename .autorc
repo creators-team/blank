@@ -1,0 +1,11 @@
+{
+  "plugins": [
+    "npm",
+    "first-time-contributor",
+    "released"
+  ],
+  "owner": "craftwork",
+  "repo": "blankui",
+  "name": "Craftwork",
+  "email": "hi@craftwork.com"
+}

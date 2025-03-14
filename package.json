@@ -1,0 +1,38 @@
+{
+  "name": "blankui",
+  "version": "1.0.0",
+  "bin": {
+    "blank-ui": "dist/index.js"
+  },
+  "files": ["dist/index.js"],
+  "scripts": {
+    "prebuild": "bun scripts/build-registry.ts",
+    "build": "turbo build",
+    "predev": "pnpm run prebuild",
+    "dev": "turbo dev",
+    "lint": "ultracite lint",
+    "format": "ultracite format",
+    "test": "turbo test",
+    "analyze": "turbo analyze",
+    "bump-deps": "npx npm-check-updates --deep -u -x react-day-picker && pnpm install",
+    "bump-ui": "npx shadcn@latest add --all --overwrite -c packages/shadcn-ui",
+    "clean": "git clean -xdf node_modules"
+  },
+  "devDependencies": {
+    "@auto-it/first-time-contributor": "^11.3.0",
+    "@biomejs/biome": "1.9.4",
+    "@types/node": "^22.13.8",
+    "turbo": "^2.4.4",
+    "typescript": "^5.8.2",
+    "ultracite": "^4.1.20"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@10.5.2",
+  "type": "module",
+  "dependencies": {
+    "tsup": "^8.4.0",
+    "zod": "^3.24.2"
+  }
+}
