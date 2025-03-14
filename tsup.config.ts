@@ -12,4 +12,6 @@ export default defineConfig({
   outDir: 'dist',
   treeshake: true,
   sourcemap: true,
+  minify: true,
+  noExternal: ['zod'],
 });
