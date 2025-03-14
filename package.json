@@ -1,5 +1,5 @@
 {
-  "name": "blankui",
+  "name": "@useblank/blankui",
   "version": "1.0.0",
   "bin": {
     "blank-ui": "dist/index.js"
@@ -7,7 +7,8 @@
   "files": ["dist/index.js"],
   "scripts": {
     "prebuild": "bun scripts/build-registry.ts",
-    "build": "turbo build",
+    "build": "turbo build && npm run build:package",
+    "build:package": "tsup --config tsup.config.ts",
     "predev": "pnpm run prebuild",
     "dev": "turbo dev",
     "lint": "ultracite lint",
