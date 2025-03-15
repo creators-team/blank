@@ -1,2 +1,4 @@
 @import "tailwindcss";
+@import "@blankui/tailwind-config/variables";
+
 @config "@blankui/tailwind-config";
