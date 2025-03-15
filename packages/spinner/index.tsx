@@ -1,4 +1,4 @@
-import { cn } from '@blankui/utils';
+import { cn } from '@useblank/utils';
 import {
   LoaderCircleIcon,
   LoaderIcon,

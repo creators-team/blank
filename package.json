@@ -1,6 +1,6 @@
 {
   "name": "@useblank/ui",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "bin": {
     "blank-ui": "dist/index.js"
   },
@@ -12,6 +12,7 @@
     "build:package": "tsup --config tsup.config.ts",
     "predev": "pnpm run build:registry",
     "dev": "turbo dev",
+    "dev:package": "tsx scripts/index.ts",
     "lint": "ultracite lint",
     "format": "ultracite format",
     "test": "turbo test",
